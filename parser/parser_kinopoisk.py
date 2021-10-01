@@ -4,6 +4,7 @@ import asyncio
 import requests
 from pprint import pprint
 from bs4 import BeautifulSoup
+from parser.parser_webdriver import ParseWebDriver
 from config import Kinopoisk
 
 class ParseKinopoisk:
@@ -40,6 +41,14 @@ class ParseKinopoisk:
         if r.status_code == 200:
             return r.text
         return link
+
+    async def produce_html_webdriver(self, link:str) -> str:
+        """
+        Method which is dedicated to create values of the link only with the 
+        Input:  link = value of the link where required to find values of it
+        Output: full html values of it
+        """
+        pass
 
     async def produce_html_parsing(self, html:str, value_link:str) -> dict:
         """
@@ -84,13 +93,8 @@ class ParseKinopoisk:
         links = await asyncio.gather(*tasks)
 
         semaphore = asyncio.Semaphore(Kinopoisk.semaphore)
-        # k = requests.get(links[0]).text
-        # print(k)
         async with semaphore:
-            # async with aiohttp.ClientSession(trust_env=True) as session:
-            #     print(session)
-            #     tasks = [asyncio.create_task(self.produce_html_values(session, link)) for link in links[:1]]
-            #     htmls = await asyncio.gather(*tasks)
+            
             tasks = [asyncio.create_task(self.produce_html_response(link)) for link in links]
             htmls = await asyncio.gather(*tasks)
         tasks = [asyncio.create_task(self.produce_html_parsing(html, link)) for html, link in zip(htmls[:1], links[:1])]
