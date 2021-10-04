@@ -1,7 +1,7 @@
 import os
 import zipfile
 import requests
-from config import link_webdriver, FolderProject
+from config import link_webdriver, Folders
 
 
 class ParseWebDriver:
@@ -21,8 +21,8 @@ class ParseWebDriver:
         Input:  value which is required ro be used
         Output: we created our link to the webdriver for it
         """
-        value_path = os.path.join(FolderProject.folder_current, 
-                                FolderProject.folder_storage) 
+        value_path = os.path.join(Folders.folder_main, 
+                                Folders.folder_storage) 
         return value_path, os.path.join(value_path, 'chromedriver'), \
                 os.path.join(value_path, self.name_archive)
 

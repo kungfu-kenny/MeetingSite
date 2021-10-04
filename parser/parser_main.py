@@ -2,13 +2,13 @@ import os
 import time
 import asyncio
 import pandas as pd
-from parser.parser_kinopoisk import ParseKinopoisk
+from parser.parser_imdb import ParseImdb
 from utillities.check_all import (check_storage,
                                  produce_chunks,
                                  produce_storage,
                                  check_file_presence)
 from config import (Folders, 
-                    Kinopoisk,
+                    Imdb,
                     user_numbers)
 
 
@@ -18,7 +18,7 @@ class ParserMain:
     """
     def __init__(self) -> None:
         self.folder_storage = os.path.join(Folders.folder_main, Folders.folder_storage)
-        self.dataframe_storage = os.path.join(self.folder_storage, Kinopoisk.df_name)
+        self.dataframe_storage = os.path.join(self.folder_storage, Imdb.df_name)
 
     def produce_absent(self) -> list:
         """
@@ -43,9 +43,9 @@ class ParserMain:
             values_id = produce_chunks(values_id)
         else:
             values_id = self.produce_absent()
-        parse_kinopoisk = ParseKinopoisk()
+        parse_imdb = ParseImdb()
         for value_id in values_id[:1]:
             loop = asyncio.get_event_loop()
-            value_list = loop.run_until_complete(parse_kinopoisk.produce_main(value_id))
+            value_list = loop.run_until_complete(parse_imdb.produce_main(value_id))
         print(f"{time.time() - begin} seconds")
         print('cccccccccccccccccccccccccccccccccccccccccccccccccccccccc')

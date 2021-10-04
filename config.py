@@ -15,8 +15,9 @@ class Folders:
     folder_storage = 'storage'
 
 @dataclass
-class Kinopoisk:
-    link = 'https://www.kinopoisk.ru'
+class Imdb:
+    link = 'https://www.imdb.com'
     link_name = 'name'
     semaphore = 10
-    df_name = 'names_kinopoisk.csv'
+    link_name_add = 'nm'
+    df_name = 'names_imdb.csv'
