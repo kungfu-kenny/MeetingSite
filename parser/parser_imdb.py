@@ -11,6 +11,7 @@ from fake_useragent import UserAgent
 from parser.parser_webdriver import ParseWebDriver
 from config import Imdb
 
+
 class ParseImdb:
     """
     class which is dedicated to produce 
@@ -75,14 +76,6 @@ class ParseImdb:
             return r.text
         return link
 
-    async def produce_html_webdriver(self, link:str) -> str:
-        """
-        Method which is dedicated to create values of the link only with the 
-        Input:  link = value of the link where required to find values of it
-        Output: full html values of it
-        """
-        pass
-
     async def produce_html_parsing(self, html:str, value_link:str) -> dict:
         """
         Method which is dedicated to produce values of the actor/actress differentiating from it
@@ -117,7 +110,7 @@ class ParseImdb:
         number = produce_number(number)
         return '/'.join([Imdb.link, Imdb.link_name, f'{Imdb.link_name_add}{number}'])
 
-    async def produce_main(self, numbers:list, webdriver_automate:bool=False) -> list:
+    async def produce_main(self, numbers:list) -> list:
         """
         Method which is dedicated to produce values of the actors and get all of their information
         Input:  numbers = numbers of IDs of the Kinopoisk which possibly could be used as a parsing
@@ -130,7 +123,8 @@ class ParseImdb:
         links = await asyncio.gather(*tasks)
         semaphore = asyncio.Semaphore(Imdb.semaphore)
         async with semaphore:
-            tasks = [asyncio.create_task(self.produce_html_response(link)) for link in links]
-            htmls = await asyncio.gather(*tasks)
+            async with aiohttp.ClientSession(trust_env=True) as session:
+                tasks = [asyncio.create_task(self.produce_html_values(session, link)) for link in links]
+                htmls = await asyncio.gather(*tasks)
         tasks = [asyncio.create_task(self.produce_html_parsing(html, link)) for html, link in zip(htmls, links)]
         return await asyncio.gather(*tasks)
