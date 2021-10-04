@@ -95,6 +95,18 @@ class ParserMain:
         with open(value_path, 'w') as json_wrote:
             json.dump(value_list, json_wrote, indent=4)
 
+    def produce_dataframe_filtration(self, df_value:pd.DataFrame=pd.DataFrame([])) -> pd.DataFrame:
+        """
+        Method which is dedicated to filtrate values of the selected dataframe
+        Input:  df_value = value which is dedicated to produce values
+        Output: we created values of the filtrated dataframe
+        """
+        #TODO filtrate for the type row;
+        #TODO filtrate for the dead persons;
+        #TODO develop values of the proffessions
+        #TODO develop dataframe of the proffessions
+        pass
+
     def produce_dataframe(self) -> pd.DataFrame:
         """
         Method which is dedicated to produce values of it
