@@ -4,14 +4,16 @@ import json
 import asyncio
 import pandas as pd
 from pprint import pprint
+from datetime import datetime
 from parser.parser_imdb import ParseImdb
 from utillities.check_all import (check_storage,
                                  produce_chunks,
                                  produce_storage,
                                  check_file_presence)
-from config import (Imdb,
-                    Folders, 
-                    user_numbers)
+from config import (Folders, 
+                    DataFrames,
+                    user_numbers,
+                    dictionary_astrology)
 
 
 class ParserMain:
@@ -20,9 +22,14 @@ class ParserMain:
     """
     def __init__(self) -> None:
         self.folder_storage = os.path.join(Folders.folder_main, Folders.folder_storage)
-        self.dataframe_storage = os.path.join(self.folder_storage, Imdb.df_name)
+        self.dataframe_storage = os.path.join(self.folder_storage, DataFrames.df_name)
+        self.dataframe_professions = os.path.join(self.folder_storage, DataFrames.df_name_proffesions)
+        self.dataframe_astrology = os.path.join(self.folder_storage, DataFrames.df_name_astrology)
+        self.columns_professions = ['id', 'name']
+        self.columns_astrology = ['id', 'name', 'date_begin', 'date_end']
         self.columns = ['id', 'type', 'url', 'name', 'image', 
                         'description', 'birthdate', 'deathdate', 'jobs']
+        self.columns_full = self.columns + ['jobs_indexes', 'astrology_index']
 
     def produce_absent(self) -> list:
         """
@@ -56,6 +63,8 @@ class ParserMain:
         """
         value_list_old = []
         for value_dict in value_list:
+            job_title = value_dict.get('jobTitle', []) if \
+                isinstance(value_dict.get('jobTitle', []), list) else [value_dict.get('jobTitle', [])]
             value_list_old.append(
                 [
                     value_dict.get('ID', 0),
@@ -66,7 +75,7 @@ class ParserMain:
                     value_dict.get('description', ''),
                     value_dict.get('birthDate', ''),
                     value_dict.get('deathDate', ''),
-                    '|'.join(value_dict.get('jobTitle', []))
+                    '|'.join(job_title)
                 ]
             )
         value_df = pd.DataFrame(value_list_old, columns=self.columns)
@@ -95,17 +104,85 @@ class ParserMain:
         with open(value_path, 'w') as json_wrote:
             json.dump(value_list, json_wrote, indent=4)
 
+    def develop_dataframe_professions(self, value_list:list) -> pd.DataFrame:
+        """
+        Method which is dedicated to develop values of the 
+        Input:  value_list = list of the values of the selected professions
+        Output: dataframe of the proffesion values
+        """
+        value_professions = []
+        for value in value_list:
+            value_professions.extend(value.split('|'))
+        value_professions = list(set(value_professions))
+        value_professions = [(index + 1, profession) for index, 
+                                profession in enumerate(value_professions)]
+        return pd.DataFrame(value_professions, columns=self.columns_professions)
+
+    def develop_dataframe_astrology(self) -> pd.DataFrame:
+        """
+        Method which is dedicated to develop astrology values
+        Input:  None
+        Output: we developed dataframe for the astrology
+        """
+        value_list = [(index+1, f.get('name', ''), 
+                        f.get('begin', ''), f.get('end', '')) 
+                    for index, f in enumerate(dictionary_astrology)]
+        df_astrology = pd.DataFrame(value_list, columns=self.columns_astrology)
+        self.produce_save_df(self.dataframe_astrology, df_astrology)
+
+    def develop_values_astrology(self, value_string:str, list_astrology:list=[]) -> int:
+        """
+        Method which is dedicated to return values to the astrology
+        Input:  value_string = string of the birthdate
+                list_astrology = dataframe lists is returns 
+        Output: we created values for the astrology index
+        """
+        if not list_astrology:
+            list_astrology = [[datetime.strptime(f.get('begin'), "%m.%d"), 
+                            datetime.strptime(f.get('end'), "%m.%d")] 
+                        for f in dictionary_astrology]
+        if isinstance(value_string, float):
+            return 0
+        value_date = datetime.strptime(value_string,"%Y-%m-%d")
+        value_add = list_astrology[0][0].year if not \
+            (value_date.month==1 and value_date.day < 20) else list_astrology[0][0].year + 1
+        value_date = value_date.replace(year=value_add)
+        for value_begin, value_end in list_astrology:
+            if value_begin <= value_date <= value_end:
+                return list_astrology.index([value_begin, value_end]) + 1
+        return 0
+
     def produce_dataframe_filtration(self, df_value:pd.DataFrame=pd.DataFrame([])) -> pd.DataFrame:
         """
         Method which is dedicated to filtrate values of the selected dataframe
         Input:  df_value = value which is dedicated to produce values
         Output: we created values of the filtrated dataframe
         """
-        #TODO filtrate for the type row;
-        #TODO filtrate for the dead persons;
-        #TODO develop values of the proffessions
-        #TODO develop dataframe of the proffessions
-        pass
+        if df_value.empty:
+            df_value = pd.read_csv(self.dataframe_storage)
+        df_value = df_value[df_value['type'] == 'Person']
+        #TODO remove dead people
+        # df_value = df_value[df_value['deathdate'].isna()]
+        df_value_professions = self.develop_dataframe_professions(df_value['jobs'].values)
+        self.produce_save_df(self.dataframe_professions, df_value_professions)
+        list_indexes = []
+        list_search = list(df_value_professions['name'].values)
+        for values in df_value['jobs'].values:
+            list_indexes.append(
+                '|'.join([str(list_search.index(f)) for f in values.split('|')]))
+        df_value['jobs_indexes'] = list_indexes
+        if not os.path.exists(self.dataframe_astrology):
+            self.develop_dataframe_astrology()
+        list_astrology = [[datetime.strptime(f.get('begin'), "%m.%d"), 
+                            datetime.strptime(f.get('end'), "%m.%d")] 
+                        for f in dictionary_astrology]
+        list_astrology[9][1] = list_astrology[9][1].replace(year=list_astrology[0][0].year +1)
+        list_index_astrology = []
+        for value_date in df_value['birthdate'].values:
+            list_index_astrology.append(self.develop_values_astrology(value_date, list_astrology))   
+        df_value['astrology_index'] = list_index_astrology
+        self.produce_save_df(self.dataframe_storage, df_value)
+        return df_value
 
     def produce_dataframe(self) -> pd.DataFrame:
         """
