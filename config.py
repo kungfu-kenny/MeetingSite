@@ -7,8 +7,12 @@ load_dotenv()
 link_webdriver = os.getenv("LINK_WEBDRIVER")
 
 default_chunk = 10
+
 user_numbers = 1000000
-user_numbers = 100
+
+@dataclass
+class Db:
+    sqlite_name = 'sqlite.db'
 
 @dataclass
 class Folders:

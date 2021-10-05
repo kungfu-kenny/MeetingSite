@@ -169,7 +169,7 @@ class ParserMain:
         list_search = list(df_value_professions['name'].values)
         for values in df_value['jobs'].values:
             list_indexes.append(
-                '|'.join([str(list_search.index(f)) for f in values.split('|')]))
+                '|'.join([str(list_search.index(f) + 1) for f in values.split('|')]))
         df_value['jobs_indexes'] = list_indexes
         if not os.path.exists(self.dataframe_astrology):
             self.develop_dataframe_astrology()
