@@ -4,7 +4,12 @@ from pprint import pprint
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from parser.parser_main import ParserMain
-from db.db_creator import Base
+from db.db_creator import  (Base,
+                            User,
+                            Astrology,
+                            Profession,
+                            association_table_user_astrology,
+                            association_table_user_profession)
 from utillities.check_all import (check_storage, 
                                  produce_storage, 
                                  check_file_presence)
@@ -18,11 +23,12 @@ class DataBaseMain:
     class which is dedicated to make the basic tests insertion and operations for it
     """
     def __init__(self) -> None:
+        self.session = None
         self.parser_main = ParserMain()
         self.folder_path = os.path.join(Folders.folder_main, Folders.folder_storage)
         self.file_path = os.path.join(self.folder_path, Db.sqlite_name)
         self.engine = self.produce_engine_file()
-
+        
     def check_route(self) -> bool:
         """
         Method which is dedicated to develop check of the route of sqlite
@@ -43,19 +49,19 @@ class DataBaseMain:
         Output: we created engine files
         """
         self.check_route()
-        return create_engine(self.file_path, echo=True)
-
-
+        return create_engine(f"sqlite:///{self.file_path}", echo=True)
+        
     def check_database(self) -> bool:
         """
         Method which is dedicated to develop checking the database
         Input:  
         Output: boolean value which signify that database is developed
         """
-        if not self.check_route():
+        check_route = self.check_route()
+        if not check_route:
             print('Base is completely new')
-        #TODO try here to write the script of the development of it
-        return False
+            self.develop_database()
+        return bool(self.session)
 
     def develop_database(self):
         """
@@ -82,6 +88,36 @@ class DataBaseMain:
             print(e)
             print('-----------------------------')
 
+    def close_session(self) -> None:
+        """
+        Method which is dedicated to close session of the sql alchemy
+        Input:  None values
+        Output: we close this session
+        """
+        if self.session:
+            self.session.close()
+
+    def make_mass_insertion(self, value_list:list) -> None:
+        """
+        Method for inserting objects at one iterations
+        Input:  value_list = list of the selected objects
+        Output: we commited to the database
+        """
+        if value_list:
+            self.session.add_all(value_list)
+            self.session.commit()
+
+    def make_basic_insertion(self, value_list:list) -> None:
+        """
+        Method which is dedicated to insert basic without add_all command
+        Input:  value_list = list of the commands
+        Output: we inserted values of it
+        """
+        if value_list:
+            for f in value_list:
+                self.session.execute(f)
+                self.session.commit()
+
     def produce_insertion(self, *args:set) -> None:
         """
         Method which is dedicated to insert all values to the database
@@ -96,11 +132,53 @@ class DataBaseMain:
         list_astrology, list_profession, list_users, \
             list_id_astrology, list_id_professions = args
         if not self.check_database():
-            #TODO add here values of the developing the connection of it
-            print(1)
-        else:
-            print(2)
+            self.session = self.return_session()
+        
+        list_id_astrologies = [[list_users[i-1][1], list_ids] for i, list_ids in list_id_astrology]
+        list_id_profession = [[list_users[i-1][1], list_ids] for i, list_ids in list_id_professions]
+        list_users = [[i, link, name, link_image, description, date_begin, date_end]
+                for i, link, name, link_image, description, date_begin, date_end 
+                in list_users  if link not in [f[0] for f in self.session.query(User.link).all()]]
+        list_id_astrologies = [[list_user, list_ids] for list_user, list_ids in list_id_astrologies
+                if list_user in [f[1] for f in list_users]]
+        list_id_profession = [[list_user, list_ids] for list_user, list_ids in list_id_professions
+                if list_user in [f[1] for f in list_users]]
+        
+        objects = [User(name=name, link=link, description=description, 
+                        date_birth=date_birth, date_death=date_death, link_image=link_image)
+                    for _, link, name, link_image, description, date_birth, date_death in list_users]
+        self.make_mass_insertion(objects)
+        
+        list_astrology = [[i, name, date_begin, date_end] for i, name, date_begin, date_end 
+                            in list_astrology if name 
+                        not in [f[0] for f in self.session.query(Astrology.name).all()]]        
+        objects = [Astrology(id=i, name=name, date_begin=date_begin, date_end=date_end)
+                    for i, name, date_begin, date_end in list_astrology]
+        self.make_mass_insertion(objects)
 
+        list_profession = [[i, name] for i, name in list_profession if name not in 
+                            [f[0] for f in self.session.query(Profession.name).all()]]
+        objects = [Profession(name=name) for _, name in list_profession]
+        self.make_mass_insertion(objects)
+
+        ids_users = [f[0] for f in self.session.query(User.id).filter(
+                        User.link.in_([f[0] for f in list_id_astrologies])).all()]
+        list_id_astrologies = [[id_user, id_astrology] for 
+                                id_user, (_, id_astrology) in zip(ids_users, list_id_astrologies)]
+        objects = [association_table_user_astrology.insert().values(id_user=id_user, id_astrology=int(id_astrology))
+                    for id_user, id_astrology in list_id_astrologies]
+        self.make_basic_insertion(objects)
+        
+        ids_users = [f[0] for f in self.session.query(User.id).filter(
+                        User.link.in_(f[0] for f in list_id_profession)).all()]
+        list_id_professions = []
+        for (_, id_professions), ids_user in zip(list_id_profession, ids_users):
+            for id_profession in id_professions:
+                list_id_professions.append([ids_user, id_profession])
+        objects = [association_table_user_profession.insert().values(id_user=ids_user, id_profession=id_profession)
+                    for ids_user, id_profession in list_id_professions]
+        self.make_basic_insertion(objects)
+        
     def produce_basic_values_insertion(self, value_refind:bool=False) -> None:
         """
         Method which is dedicated to transform basic values of the insertion

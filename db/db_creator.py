@@ -32,25 +32,27 @@ class User(Base):
     date_birth = Column(String(20))
     date_death = Column(String(20))
     description = Column(Text)
-    user_profession = relationship("profession",
+    user_profession = relationship("Profession",
         secondary=association_table_user_profession,
-        back_populates="user_profession")
-    user_astrology = relationship("astrology",
+        back_populates="profession_user")
+    user_astrology = relationship("Astrology",
         secondary=association_table_user_astrology,
-        back_populates="user_astrology")
+        back_populates="astrology_user")
 
-class Astrology:
+class Astrology(Base):
     __tablename__ = 'astrology'
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
-    user_astrology = relationship("user",
+    date_begin = Column(String(10))
+    date_end = Column(String(10))
+    astrology_user = relationship("User",
         secondary=association_table_user_astrology,
         back_populates="user_astrology")
 
-class Profession:
+class Profession(Base):
     __tablename__ = 'profession'
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
-    user_profession = relationship("user",
+    profession_user = relationship("User",
         secondary=association_table_user_profession,
         back_populates="user_profession")
