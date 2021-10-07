@@ -7,7 +7,6 @@ load_dotenv()
 link_webdriver = os.getenv("LINK_WEBDRIVER")
 
 default_chunk = 10
-
 user_numbers = 1000000
 
 @dataclass
@@ -31,6 +30,21 @@ class DataFrames:
     df_name = 'names_imdb.csv'
     df_name_proffesions = 'professions.csv'
     df_name_astrology = 'astrology.csv'
+
+dictionary_gender = [
+    {
+        'id': 1,
+        'name': 'Male',
+    },
+    {
+        'id': 2,
+        'name': 'Female',
+    },
+    {
+        'id': 3,
+        'name': 'Unknown',
+    }
+]
 
 dictionary_astrology = [
     {

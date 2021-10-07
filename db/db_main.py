@@ -178,6 +178,7 @@ class DataBaseMain:
         objects = [association_table_user_profession.insert().values(id_user=ids_user, id_profession=id_profession)
                     for ids_user, id_profession in list_id_professions]
         self.make_basic_insertion(objects)
+        self.close_session()
         
     def produce_basic_values_insertion(self, value_refind:bool=False) -> None:
         """
