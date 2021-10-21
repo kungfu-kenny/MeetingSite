@@ -1,5 +1,7 @@
 import os
+from PIL import Image
 import requests
+from io import BytesIO
 from multiprocessing import Pool
 
 
@@ -9,6 +11,16 @@ class ModelGender:
     """
     def __init__(self) -> None:
         pass
+
+    @staticmethod
+    def get_image_content(value_link:str) -> list:
+        """
+        Method which is dedicated to develop values of the 
+        Input:  value_link = link value of the image location
+        Output: list of the image bytes
+        """
+        response = requests.get(value_link, stream=True)
+        return BytesIO(response.content)
 
     def get_image_value(self, value_image:str) -> str:
         """

@@ -15,6 +15,7 @@ from utillities.check_all import (check_storage,
                                  check_file_presence)
 from config import (Db, 
                     Folders, 
+                    user_numbers,
                     dictionary_astrology)
 
 
@@ -192,6 +193,9 @@ class DataBaseMain:
         if not os.path.exists(self.parser_main.dataframe_storage):
             self.parser_main.produce_dataframe()
         df_value = pd.read_csv(self.parser_main.dataframe_storage)
+        #TODO remove if statement
+        # if len(df_value) < user_numbers:
+        #     self.parser_main.produce_dataframe()
         df_value = self.parser_main.produce_dataframe_filtration(df_value)
         df_value = pd.read_csv(self.parser_main.dataframe_storage)
         list_astrology = [[index + 1, f.get('name'), 
