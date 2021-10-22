@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
+
 link_webdriver = os.getenv("LINK_WEBDRIVER")
+link_model_gender = os.getenv("LINK_MODEL_GENDER")
 
 default_chunk = 10
 user_numbers = 1000000
@@ -13,6 +15,15 @@ user_numbers = 1000000
 class Db:
     sqlite_name = 'sqlite.db'
 
+@dataclass
+class Models:
+    folder_models = 'models'
+    face_proto = 'opencv_face_detector.pbtxt'
+    face_model = 'opencv_face_detector_uint8.pb'
+    gender_proto = 'gender_deploy.prototxt'
+    gender_model = 'gender_net.caffemodel'
+    gender_name_archive = 'gad.zip'
+    
 @dataclass
 class Folders:
     folder_main = os.getcwd()

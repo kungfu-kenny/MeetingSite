@@ -214,3 +214,4 @@ class DataBaseMain:
                                                         df_value['jobs_indexes'].values)]
         self.produce_insertion(list_astrology, list_profession, 
                             list_users, list_id_astrology, list_id_professions)
+        self.close_session()
