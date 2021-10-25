@@ -17,7 +17,6 @@ from utillities.check_all import (check_storage,
                                  check_file_presence)
 from config import (Db, 
                     Folders, 
-                    user_numbers,
                     dictionary_astrology)
 
 
@@ -236,7 +235,8 @@ class DataBaseMain:
                                         in list_id_astrology if value_astrology != 0]
         list_id_professions = [[value_id, [int(i) for i in value_id_profession.split('|')]] 
                             for value_id, value_id_profession in zip(df_value['id'].values, 
-                                                        df_value['jobs_indexes'].values)]
+                                                    df_value['jobs_indexes'].values) 
+                                                    if isinstance(value_id_profession, str)]
         self.produce_insertion(list_astrology, list_profession, 
                             list_users, list_id_astrology, list_id_professions)
         self.close_session()

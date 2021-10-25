@@ -112,7 +112,8 @@ class ParserMain:
         """
         value_professions = []
         for value in value_list:
-            value_professions.extend(value.split('|'))
+            if isinstance(value, str):
+                value_professions.extend(value.split('|'))
         value_professions = list(set(value_professions))
         value_professions = [(index + 1, profession) for index, 
                                 profession in enumerate(value_professions)]
@@ -146,6 +147,8 @@ class ParserMain:
         value_date = datetime.strptime(value_string,"%Y-%m-%d")
         value_add = list_astrology[0][0].year if not \
             (value_date.month==1 and value_date.day < 20) else list_astrology[0][0].year + 1
+        value_date = value_date.replace(day=28) if value_date.day == 29 \
+            and value_date.month == 2 else value_date
         value_date = value_date.replace(year=value_add)
         for value_begin, value_end in list_astrology:
             if value_begin <= value_date <= value_end:
@@ -161,15 +164,16 @@ class ParserMain:
         if df_value.empty:
             df_value = pd.read_csv(self.dataframe_storage)
         df_value = df_value[df_value['type'] == 'Person']
-        #TODO remove dead people
-        # df_value = df_value[df_value['deathdate'].isna()]
         df_value_professions = self.develop_dataframe_professions(df_value['jobs'].values)
         self.produce_save_df(self.dataframe_professions, df_value_professions)
         list_indexes = []
         list_search = list(df_value_professions['name'].values)
         for values in df_value['jobs'].values:
-            list_indexes.append(
-                '|'.join([str(list_search.index(f) + 1) for f in values.split('|')]))
+            if isinstance(values, str):
+                list_indexes.append(
+                    '|'.join([str(list_search.index(f) + 1) for f in values.split('|')]))
+            else:
+                list_indexes.append('')
         df_value['jobs_indexes'] = list_indexes
         if not os.path.exists(self.dataframe_astrology):
             self.develop_dataframe_astrology()
@@ -194,7 +198,6 @@ class ParserMain:
         if not check_storage(self.folder_storage):
             produce_storage(self.folder_storage)
         if check_storage(self.folder_storage) and not check_file_presence(self.dataframe_storage):
-            #TODO we are here now
             values_id = [i+1 for i in range(user_numbers)]
             values_id = produce_chunks(values_id)
         else:
