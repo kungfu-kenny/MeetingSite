@@ -67,7 +67,6 @@ class ParseWebDriver:
                     myzip.extract('chromedriver', self.path_webdriver)
                     os.chmod(os.path.join(self.path_webdriver, 'chromedriver'), 755)
         except Exception as e:
-            #TODO add here logger
             print(e)
             print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         finally:

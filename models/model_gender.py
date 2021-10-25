@@ -6,6 +6,7 @@ from db.db_creator import (User,
                         Gender,
                         association_table_user_gender)
 from models.model_downloader import ModelDownloader
+from utillities.check_all import produce_chunks
 from config import dictionary_gender
 
 
@@ -146,9 +147,12 @@ class ModelGender:
         value_gender_manual = [[i, self.produce_gender_search_manually(text)] 
             if text else [i, 'Unknown'] for i, text, _ in user_desc_images_gender_without]
         value_image = [[i, link] for i, _, link in user_desc_images_gender_without]
-        value_gender_model = [self.produce_gender_search_modelling(i, image) for i, image in value_image]
+        value_gender_manual = produce_chunks(value_gender_manual, 50)
+        value_image = produce_chunks(value_image, 50)
         
-        value_gender_operated = self.get_gender_value(value_gender_manual, value_gender_model)
-        value_gender_operated = [[id, dictionary_gender[name]] for id, name in value_gender_operated]
-        value_gender_main = [[value, key] for key, value in dictionary_gender.items()]
-        self.database_main.produce_insertion_model_gender(value_gender_main, value_gender_operated)
+        for index, images in enumerate(value_image):
+            gender_models = [self.produce_gender_search_modelling(i, image) for i, image in images]
+            value_gender_operated = self.get_gender_value(value_gender_manual[index], gender_models)
+            value_gender_operated = [[id, dictionary_gender[name]] for id, name in value_gender_operated]
+            value_gender_main = [[value, key] for key, value in dictionary_gender.items()]
+            self.database_main.produce_insertion_model_gender(value_gender_main, value_gender_operated)

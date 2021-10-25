@@ -17,6 +17,7 @@ from utillities.check_all import (check_storage,
                                  check_file_presence)
 from config import (Db, 
                     Folders, 
+                    user_numbers,
                     dictionary_astrology)
 
 
@@ -141,7 +142,8 @@ class DataBaseMain:
                     for id_user, id_gender in list_gender_id]
         self.make_basic_insertion(objects)
         self.close_session()
-        print('finished')
+        print('Finished')
+        print('==================================================')
 
     def produce_insertion(self, *args:set) -> None:
         """
