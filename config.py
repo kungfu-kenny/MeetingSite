@@ -42,20 +42,11 @@ class DataFrames:
     df_name_proffesions = 'professions.csv'
     df_name_astrology = 'astrology.csv'
 
-dictionary_gender = [
-    {
-        'id': 1,
-        'name': 'Male',
-    },
-    {
-        'id': 2,
-        'name': 'Female',
-    },
-    {
-        'id': 3,
-        'name': 'Unknown',
-    }
-]
+dictionary_gender = {
+    'Male': 1,
+    'Female': 2,
+    'Unknown': 3,
+}
 
 dictionary_astrology = [
     {

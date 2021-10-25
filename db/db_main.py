@@ -6,8 +6,10 @@ from sqlalchemy.orm import sessionmaker
 from parser.parser_main import ParserMain
 from db.db_creator import  (Base,
                             User,
+                            Gender,
                             Astrology,
                             Profession,
+                            association_table_user_gender,
                             association_table_user_astrology,
                             association_table_user_profession)
 from utillities.check_all import (check_storage, 
@@ -118,6 +120,29 @@ class DataBaseMain:
             for f in value_list:
                 self.session.execute(f)
                 self.session.commit()
+
+    def produce_insertion_model_gender(self, list_gender:list, list_gender_id:list) -> None:
+        """
+        Method which is dedicated to make insertion of the selected values
+        Input:  list_gender = set of the values to insert genders
+                list_gender_id = list of lists of the values which is innerconnected to it
+        Output: we developed insertion values which developed 
+        """
+        if not self.check_database():
+            self.session = self.return_session()
+        gender_used = [f[0] for f in self.session.query(Gender.id).all()]
+        list_gender = [[id, name] for id, name in list_gender if id not in gender_used]
+        gender_specified = [f[0] for f in self.session.query(User.id).filter(
+                            association_table_user_gender.c.id_user== User.id).all()]
+        list_gender_id = [[id_user, id_gender] for id_user, id_gender 
+                            in list_gender_id if id_user not in gender_specified]
+        objects = [Gender(id=id, name=name) for id, name in list_gender]
+        self.make_mass_insertion(objects)
+        objects = [association_table_user_gender.insert().values(id_user=id_user, id_gender=id_gender)
+                    for id_user, id_gender in list_gender_id]
+        self.make_basic_insertion(objects)
+        self.close_session()
+        print('finished')
 
     def produce_insertion(self, *args:set) -> None:
         """
