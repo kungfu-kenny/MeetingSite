@@ -133,13 +133,15 @@ class ModelGender:
                     gender = 'Unknown'
         return index, gender
 
-    def produce_values_main(self) -> None:
+    def produce_values_main(self, value_refind:bool=True) -> None:
         """
         Method which is dedicated to produce values into the datbase with produce values
         of the gender to the database
-        Input:  None
+        Input:  value_refind = boolean value which signifies the work
         Output: we created values of the 
         """
+        if not value_refind:
+            return
         user_gender_specified = self.session.query(User.id).filter(association_table_user_gender.c.id_user== User.id).all()
         user_gender_specified = [f[0] for f in user_gender_specified]
         user_desc_images_gender_without = self.session.query(

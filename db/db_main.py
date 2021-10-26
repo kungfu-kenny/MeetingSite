@@ -17,7 +17,6 @@ from utillities.check_all import (check_storage,
                                  check_file_presence)
 from config import (Db, 
                     Folders, 
-                    user_numbers,
                     dictionary_astrology)
 
 
@@ -52,7 +51,7 @@ class DataBaseMain:
         Output: we created engine files
         """
         self.check_route()
-        return create_engine(f"sqlite:///{self.file_path}", echo=True)
+        return create_engine(f"sqlite:///{self.file_path}", echo=Db.echo)
         
     def check_database(self) -> bool:
         """
@@ -142,7 +141,7 @@ class DataBaseMain:
                     for id_user, id_gender in list_gender_id]
         self.make_basic_insertion(objects)
         self.close_session()
-        print('Finished')
+        print(f'Finished inserting for {list_gender_id[0][0]}-{list_gender_id[-1][0]}')
         print('==================================================')
 
     def produce_insertion(self, *args:set) -> None:
@@ -163,11 +162,15 @@ class DataBaseMain:
         
         list_id_astrologies = [[list_users[i-1][1], list_ids] for i, list_ids in list_id_astrology]
         list_id_profession = [[list_users[i-1][1], list_ids] for i, list_ids in list_id_professions]
+        
+        value_links_prev = [f[0] for f in self.session.query(User.link).all()]
         list_users = [[i, link, name, link_image, description, date_begin, date_end]
                 for i, link, name, link_image, description, date_begin, date_end 
-                in list_users  if link not in [f[0] for f in self.session.query(User.link).all()]]
+                in list_users  if link not in value_links_prev]
+        
         list_id_astrologies = [[list_user, list_ids] for list_user, list_ids in list_id_astrologies
                 if list_user in [f[1] for f in list_users]]
+        
         list_id_profession = [[list_user, list_ids] for list_user, list_ids in list_id_professions
                 if list_user in [f[1] for f in list_users]]
         
@@ -183,8 +186,9 @@ class DataBaseMain:
                     for i, name, date_begin, date_end in list_astrology]
         self.make_mass_insertion(objects)
 
+        list_profession_prev = [f[0] for f in self.session.query(Profession.name).all()]
         list_profession = [[i, name] for i, name in list_profession if name not in 
-                            [f[0] for f in self.session.query(Profession.name).all()]]
+                            list_profession_prev]
         objects = [Profession(name=name) for _, name in list_profession]
         self.make_mass_insertion(objects)
 
@@ -219,9 +223,6 @@ class DataBaseMain:
         if not os.path.exists(self.parser_main.dataframe_storage):
             self.parser_main.produce_dataframe()
         df_value = pd.read_csv(self.parser_main.dataframe_storage)
-        #TODO remove if statement
-        # if len(df_value) < user_numbers:
-        #     self.parser_main.produce_dataframe()
         df_value = self.parser_main.produce_dataframe_filtration(df_value)
         df_value = pd.read_csv(self.parser_main.dataframe_storage)
         list_astrology = [[index + 1, f.get('name'), 

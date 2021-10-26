@@ -14,6 +14,17 @@ user_numbers = 1000000
 @dataclass
 class Db:
     sqlite_name = 'sqlite.db'
+    echo = False
+
+# @dataclass
+class Config(object):
+    DEBUG = True
+
+class ProductionConfig(Config):
+    HOST = '0.0.0.0'
+    PORT = 5001
+    DEBUG = True
+    # SECRET_KEY = ''
 
 @dataclass
 class Models:
@@ -110,3 +121,7 @@ dictionary_astrology = [
         'end': '03.20',
     },
 ]
+
+# config = {
+#     'dev': Website,
+# }
