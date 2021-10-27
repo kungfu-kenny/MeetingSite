@@ -211,6 +211,20 @@ class DataBaseMain:
         self.make_basic_insertion(objects)
         self.close_session()
         
+    def get_values_user(self, value_id:int) -> set:
+        """
+        Method which is dedicated usage of the values
+        Input:  value_id = id of the user 
+        Output: values for the development 
+        """
+        if not self.check_database():
+            self.session = self.return_session()
+        table_user = self.session.query(User.id, User.name, User.link, 
+                    User.link_image, User.date_birth, User.date_death, 
+                    User.description).filter(User.id==value_id).first()
+        
+        return table_user
+
     def produce_basic_values_insertion(self, value_refind:bool=False) -> None:
         """
         Method which is dedicated to transform basic values of the insertion

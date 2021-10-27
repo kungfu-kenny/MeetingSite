@@ -16,14 +16,11 @@ class Db:
     sqlite_name = 'sqlite.db'
     echo = False
 
-# @dataclass
-class Config(object):
-    DEBUG = True
-
-class ProductionConfig(Config):
-    HOST = '0.0.0.0'
-    PORT = 5001
-    DEBUG = True
+@dataclass
+class ProductionConfig(object):
+    host = '0.0.0.0'
+    port = 5001
+    debug = True
     # SECRET_KEY = ''
 
 @dataclass

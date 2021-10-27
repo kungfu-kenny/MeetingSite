@@ -4,7 +4,7 @@ import time
 from db.db_main import DataBaseMain
 from models.model_gender import ModelGender
 from website.website import app
-from config import ProductionConfig#, config
+from config import ProductionConfig
 
 try:
     start_database_development = time.time()
@@ -19,7 +19,7 @@ try:
     print(f"Inserting genders of the people took: {time.time() - start_database_gender} seconds")
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
     
-    app.run()
+    app.run(host=ProductionConfig.host, port=ProductionConfig.port, debug=ProductionConfig.debug)
 except Exception as e:
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
